@@ -1,0 +1,22 @@
+{
+  "short_name": "IITCUP Custodia",
+  "name": "Sistema de Gestión de Cadena de Custodia IITCUP",
+  "description": "Sistema de gestión y trazabilidad de cadenas de custodia para el Instituto de Investigaciones Técnico Científicas de la Universidad Policial - Santa Cruz",
+  "start_url": "/",
+  "background_color": "#0a192f",
+  "theme_color": "#1b4332",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1042/1042336.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1042/1042336.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

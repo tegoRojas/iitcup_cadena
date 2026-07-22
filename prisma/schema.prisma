@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  ADMINISTRADOR
+  ENCARGADO
+  PERITO
+}
+
+enum EstadoCadena {
+  RECIBIDA
+  EN_ANALISIS
+  EN_PROCESO
+  FINALIZADA
+  ENTREGADA
+  ARCHIVADA
+}
+
+enum EstadoUsuario {
+  ACTIVO
+  INACTIVO
+}
+
+model User {
+  id             String         @id @default(uuid())
+  nombre         String
+  apellidos      String
+  ci             String         @unique
+  cargo          String
+  correo         String         @unique
+  telefono       String
+  usuario        String         @unique
+  contrasenaHash String
+  rol            Rol            @default(PERITO)
+  estado         EstadoUsuario  @default(ACTIVO)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Relationships
+  asignaciones   PeritoAsignado[] @relation("PeritoAsignadoToUser")
+  accionesAudit  Auditoria[]      @relation("AuditoriaToUser")
+  historiales    Historial[]      @relation("HistorialToUser")
+  documentos     Documento[]      @relation("DocumentoToUser")
+  notificaciones Notificacion[]   @relation("NotificacionToUser")
+}
+
+model CadenaCustodia {
+  codigoUnico  String         @id
+  nroCadena    String         @unique
+  caso         String
+  fiscalia     String
+  fiscal       String
+  investigador String
+  fecha        String
+  hora         String
+  lugar        String
+  estadoActual EstadoCadena   @default(RECIBIDA)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // Relationships
+  evidencias   Evidencia[]
+  peritos      PeritoAsignado[]
+  documentos   Documento[]
+  historiales  Historial[]
+}
+
+model Evidencia {
+  id           String         @id @default(uuid())
+  cadenaCodigo String
+  codigo       String         @unique
+  tipo         String
+  descripcion  String
+  peso         String
+  cantidad     Int
+  embalaje     String
+  estado       String
+  observaciones String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // Relationships
+  cadena       CadenaCustodia @relation(fields: [cadenaCodigo], references: [codigoUnico], onDelete: Cascade)
+}
+
+model PeritoAsignado {
+  id              String         @id @default(uuid())
+  cadenaCodigo    String
+  peritoId        String
+  fechaAsignacion DateTime       @default(now())
+  asignadoPor     String
+  estadoAsignacion String         @default("ASIGNADO")
+
+  // Relationships
+  cadena          CadenaCustodia @relation(fields: [cadenaCodigo], references: [codigoUnico], onDelete: Cascade)
+  perito          User           @relation("PeritoAsignadoToUser", fields: [peritoId], references: [id], onDelete: Cascade)
+
+  @@unique([cadenaCodigo, peritoId])
+}
+
+model Documento {
+  id           String         @id @default(uuid())
+  cadenaCodigo String
+  nombreArchivo String
+  tipoArchivo  String
+  fechaCarga   DateTime       @default(now())
+  cargadoPorId String
+  descripcion  String
+  tamano       Int            // Size in bytes
+
+  // Relationships
+  cadena       CadenaCustodia @relation(fields: [cadenaCodigo], references: [codigoUnico], onDelete: Cascade)
+  cargadoPor   User           @relation("DocumentoToUser", fields: [cargadoPorId], references: [id])
+}
+
+model Historial {
+  id           String         @id @default(uuid())
+  cadenaCodigo String
+  fecha        String
+  hora         String
+  usuarioId    String
+  usuarioNombre String
+  accion       String
+  observaciones String?
+  createdAt    DateTime       @default(now())
+
+  // Relationships
+  cadena       CadenaCustodia @relation(fields: [cadenaCodigo], references: [codigoUnico], onDelete: Cascade)
+  usuario      User           @relation("HistorialToUser", fields: [usuarioId], references: [id])
+}
+
+model Auditoria {
+  id           String         @id @default(uuid())
+  usuarioId    String
+  usuarioNombre String
+  fecha        String
+  hora         String
+  accion       String
+  ip           String
+  navegador    String
+  createdAt    DateTime       @default(now())
+
+  // Relationships
+  usuario      User           @relation("AuditoriaToUser", fields: [usuarioId], references: [id])
+}
+
+model Notificacion {
+  id           String         @id @default(uuid())
+  usuarioId    String
+  titulo       String
+  mensaje      String
+  fecha        DateTime       @default(now())
+  leida        Boolean        @default(false)
+
+  // Relationships
+  usuario      User           @relation("NotificacionToUser", fields: [usuarioId], references: [id], onDelete: Cascade)
+}
