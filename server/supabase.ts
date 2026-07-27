@@ -9,7 +9,22 @@ const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || 'S0l0R0j4s0509*').
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+function isJwtKey(key: string): boolean {
+  return (key.startsWith('ey') || key.startsWith('sbp_') || key.startsWith('sb_')) && key.includes('.');
+}
+
 export async function testSupabaseConnection(): Promise<{ success: boolean; message: string; details?: any }> {
+  if (!isJwtKey(supabaseKey)) {
+    return {
+      success: false,
+      message: 'Clave API no válida: Has ingresado la contraseña del proyecto/base de datos ("S0l0R0j4s0509*") en lugar de la Clave API de Supabase (Service Role Key / Anon Key).',
+      details: {
+        isPasswordNotKey: true,
+        help: 'Debes obtener la "service_role" key o "anon" key desde Supabase Dashboard -> Project Settings -> API.'
+      }
+    };
+  }
+
   try {
     const { data, error } = await supabase.from('regionales').select('count', { count: 'exact', head: true });
     if (error) {
@@ -21,7 +36,7 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
       ) {
         return {
           success: true,
-          message: 'Conectado exitosamente a Supabase. Las tablas aún no han sido creadas en la base de datos de Supabase.',
+          message: 'Conectado exitosamente a Supabase API. Las tablas aún no han sido creadas en Supabase.',
           details: { tablesExist: false }
         };
       }
@@ -33,7 +48,8 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
       details: { tablesExist: true, data }
     };
   } catch (err: any) {
-    return { success: false, message: `Error de red o configuración con Supabase: ${err.message}` };
+    const cause = err.cause ? ` (${err.cause.message || err.cause})` : '';
+    return { success: false, message: `Error de red o configuración con Supabase: ${err.message}${cause}` };
   }
 }
 
@@ -209,6 +225,17 @@ CREATE POLICY "Acceso de lectura y escritura para el servidor IITCUP" ON public.
 export async function syncLocalDataToSupabase(dbData: DbSchema): Promise<{ success: boolean; summary: any; errors: string[] }> {
   const summary: any = {};
   const errors: string[] = [];
+
+  if (!isJwtKey(supabaseKey)) {
+    return {
+      success: false,
+      summary,
+      errors: [
+        'Error de Configuración: "S0l0R0j4s0509*" es la contraseña de la base de datos PostgreSQL, no la clave de API de Supabase.',
+        'Obtén la "service_role" key o "anon" key desde Supabase Dashboard -> Project Settings -> API (empieza con "eyJhbGci...").'
+      ]
+    };
+  }
 
   try {
     // 1. Regionales

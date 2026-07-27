@@ -191,8 +191,24 @@ export default function SupabaseModal({ isOpen, onClose }: SupabaseModalProps) {
                     ) : (
                       <XCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                     )}
-                    <div className="space-y-1">
-                      <p className="font-bold text-sm">{status.message}</p>
+                    <div className="space-y-2 flex-1">
+                      <p className="font-bold text-sm leading-snug">{status.message}</p>
+
+                      {status.details?.isPasswordNotKey && (
+                        <div className="bg-amber-100/90 text-amber-950 p-3 rounded-lg border border-amber-300 space-y-2 font-medium">
+                          <p className="font-bold text-xs flex items-center gap-1.5 text-amber-900">
+                            <AlertTriangle className="w-4 h-4 text-amber-700" />
+                            Solución requerida:
+                          </p>
+                          <ol className="list-decimal pl-4 space-y-1 text-xs">
+                            <li>Ingresa a tu consola de Supabase: <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="font-bold underline text-amber-900">supabase.com/dashboard</a></li>
+                            <li>Selecciona tu proyecto y ve a <strong>Project Settings</strong> (icono de engranaje) &rarr; <strong>API</strong>.</li>
+                            <li>En la sección <strong>Project API keys</strong>, copia la clave <strong><code className="bg-amber-200 px-1 py-0.5 rounded font-mono">service_role</code></strong> (o la <code className="bg-amber-200 px-1 py-0.5 rounded font-mono">anon / public</code> key). Esta clave es un texto largo que comienza con <code className="bg-amber-200 px-1 py-0.5 rounded font-mono">eyJhbGci...</code></li>
+                            <li>Pégala en tu archivo <code className="bg-amber-200 px-1 py-0.5 rounded font-mono">.env.example</code> en el campo <code className="bg-amber-200 px-1 py-0.5 rounded font-mono">SUPABASE_SERVICE_ROLE_KEY</code>.</li>
+                          </ol>
+                        </div>
+                      )}
+
                       {status.details?.tablesExist ? (
                         <p className="text-emerald-700 font-medium">
                           ✓ Las tablas de la base de datos están creadas y respondiendo en el proyecto de Supabase.
