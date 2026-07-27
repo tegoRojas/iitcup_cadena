@@ -89,6 +89,7 @@ export interface Documento {
   cargadoPorId: string;
   descripcion: string;
   tamano: number;
+  base64Data?: string;
 }
 
 export interface Historial {

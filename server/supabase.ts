@@ -1,55 +1,96 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 import { DbSchema } from './db';
 
-dotenv.config();
-
-const supabaseUrl = (process.env.SUPABASE_URL || 'https://lhbgqiemzwqzvpwcgnkr.supabase.com').trim();
-const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || 'S0l0R0j4s0509*').trim();
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
-
-function isJwtKey(key: string): boolean {
-  return (key.startsWith('ey') || key.startsWith('sbp_') || key.startsWith('sb_')) && key.includes('.');
+// Ensure .env.example and .env are loaded
+function loadEnv() {
+  dotenv.config();
+  const envExamplePath = path.resolve(process.cwd(), '.env.example');
+  if (fs.existsSync(envExamplePath)) {
+    dotenv.config({ path: envExamplePath, override: true });
+  }
 }
 
+loadEnv();
+
+function isJwtKey(key: string): boolean {
+  return (key?.startsWith('ey') || key?.startsWith('sbp_') || key?.startsWith('sb_')) && key?.includes('.');
+}
+
+export function getSupabaseCredentials() {
+  loadEnv();
+  let url = (process.env.SUPABASE_URL || 'https://lhbgqiemzwqzvpwcgnkr.supabase.co').trim();
+  if (url.endsWith('.supabase.com')) {
+    url = url.replace('.supabase.com', '.supabase.co');
+  }
+  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  return { url, key, isJwt: isJwtKey(key) };
+}
+
+export function getSupabaseClient(): SupabaseClient {
+  const { url, key } = getSupabaseCredentials();
+  return createClient(url, key, {
+    auth: { persistSession: false },
+    global: {
+      headers: {
+        'x-client-info': 'aitcup-forensic-system'
+      }
+    }
+  });
+}
+
+// Export default instance for backwards compatibility
+export const supabase = getSupabaseClient();
+
 export async function testSupabaseConnection(): Promise<{ success: boolean; message: string; details?: any }> {
-  if (!isJwtKey(supabaseKey)) {
+  const { url, key, isJwt } = getSupabaseCredentials();
+
+  if (!key || !isJwt) {
     return {
       success: false,
-      message: 'Clave API no válida: Has ingresado la contraseña del proyecto/base de datos ("S0l0R0j4s0509*") en lugar de la Clave API de Supabase (Service Role Key / Anon Key).',
+      message: 'Clave API de Supabase requerida: La clave configurada no es un Token JWT válido.',
       details: {
         isPasswordNotKey: true,
-        help: 'Debes obtener la "service_role" key o "anon" key desde Supabase Dashboard -> Project Settings -> API.'
+        currentKeySample: key ? `${key.substring(0, 15)}...` : 'vacía',
+        help: 'Debes copiar la "service_role" key o "anon" key desde Supabase Dashboard -> Project Settings -> API.'
       }
     };
   }
 
   try {
-    const { data, error } = await supabase.from('regionales').select('count', { count: 'exact', head: true });
+    const client = getSupabaseClient();
+    const { data, error } = await client.from('regionales').select('count', { count: 'exact', head: true });
+    
     if (error) {
       if (
         error.code === 'PGRST301' || 
-        error.message.includes('relation "public.regionales" does not exist') || 
-        error.message.includes('does not exist') ||
+        error.message?.includes('relation "public.regionales" does not exist') || 
+        error.message?.includes('does not exist') ||
         error.code === '42P01'
       ) {
         return {
           success: true,
-          message: 'Conectado exitosamente a Supabase API. Las tablas aún no han sido creadas en Supabase.',
-          details: { tablesExist: false }
+          message: 'Conectado exitosamente a la API de Supabase. Las tablas aún no se han creado mediante el script SQL.',
+          details: { tablesExist: false, url }
         };
       }
-      return { success: false, message: `Error de respuesta Supabase: ${error.message}`, details: error };
+      return { success: false, message: `Error devuelto por Supabase: ${error.message}`, details: error };
     }
+
     return {
       success: true,
-      message: 'Conexión a Supabase establecida correctamente y tablas encontradas.',
-      details: { tablesExist: true, data }
+      message: 'Conexión a Supabase verificada correctamente y acceso a tablas confirmado.',
+      details: { tablesExist: true, url, data }
     };
   } catch (err: any) {
-    const cause = err.cause ? ` (${err.cause.message || err.cause})` : '';
-    return { success: false, message: `Error de red o configuración con Supabase: ${err.message}${cause}` };
+    const causeMsg = err.cause ? ` (${err.cause.message || err.cause})` : '';
+    return { 
+      success: false, 
+      message: `Error de red al intentar contactar con Supabase (${url}): ${err.message}${causeMsg}. Verifique que el proyecto no esté pausado en Supabase Dashboard.`,
+      details: { url, error: err.message, cause: err.cause }
+    };
   }
 }
 
@@ -225,148 +266,266 @@ CREATE POLICY "Acceso de lectura y escritura para el servidor IITCUP" ON public.
 export async function syncLocalDataToSupabase(dbData: DbSchema): Promise<{ success: boolean; summary: any; errors: string[] }> {
   const summary: any = {};
   const errors: string[] = [];
+  const { key, isJwt } = getSupabaseCredentials();
 
-  if (!isJwtKey(supabaseKey)) {
+  if (!key || !isJwt) {
     return {
       success: false,
       summary,
       errors: [
-        'Error de Configuración: "S0l0R0j4s0509*" es la contraseña de la base de datos PostgreSQL, no la clave de API de Supabase.',
-        'Obtén la "service_role" key o "anon" key desde Supabase Dashboard -> Project Settings -> API (empieza con "eyJhbGci...").'
+        'Error de Configuración: No se ha configurado una Clave API JWT válida en SUPABASE_SERVICE_ROLE_KEY.',
+        'Obtén la "service_role" key o "anon" key desde Supabase Dashboard -> Project Settings -> API (debe comenzar con "eyJhbGci...").'
       ]
     };
   }
 
+  const client = getSupabaseClient();
+
   try {
+    const validRegionalIds = new Set((dbData.regionales || []).map(r => r.id));
+    const validEspecialidadIds = new Set((dbData.especialidades || []).map(e => e.id));
+    const validUserIds = new Set((dbData.users || []).map(u => u.id));
+    const validCadenaCodigos = new Set((dbData.cadenas || []).map(c => c.codigoUnico));
+
     // 1. Regionales
     if (dbData.regionales && dbData.regionales.length > 0) {
-      const rows = dbData.regionales.map(r => ({
-        id: r.id,
-        nombre: r.nombre,
-        codigo: r.codigo,
-        activo: r.activo,
-        fecha_creacion: r.fecha_creacion
-      }));
-      const { error } = await supabase.from('regionales').upsert(rows);
-      if (error) errors.push(`Regionales: ${error.message}`);
-      else summary.regionales = rows.length;
+      try {
+        const rows = dbData.regionales.map(r => ({
+          id: r.id,
+          nombre: r.nombre,
+          codigo: r.codigo,
+          activo: r.activo,
+          fecha_creacion: r.fecha_creacion
+        }));
+        const { error } = await client.from('regionales').upsert(rows);
+        if (error) errors.push(`Regionales: ${error.message}`);
+        else summary.regionales = rows.length;
+      } catch (err: any) {
+        errors.push(`Regionales: Error de conexión (${err.message})`);
+      }
     }
 
     // 2. Especialidades
     if (dbData.especialidades && dbData.especialidades.length > 0) {
-      const rows = dbData.especialidades.map(e => ({
-        id: e.id,
-        nombre: e.nombre,
-        descripcion: e.descripcion,
-        estado: e.estado,
-        created_at: e.createdAt
-      }));
-      const { error } = await supabase.from('especialidades').upsert(rows);
-      if (error) errors.push(`Especialidades: ${error.message}`);
-      else summary.especialidades = rows.length;
+      try {
+        const rows = dbData.especialidades.map(e => ({
+          id: e.id,
+          nombre: e.nombre,
+          descripcion: e.descripcion,
+          estado: e.estado,
+          created_at: e.createdAt
+        }));
+        const { error } = await client.from('especialidades').upsert(rows);
+        if (error) errors.push(`Especialidades: ${error.message}`);
+        else summary.especialidades = rows.length;
+      } catch (err: any) {
+        errors.push(`Especialidades: Error de conexión (${err.message})`);
+      }
     }
 
     // 3. Users
     if (dbData.users && dbData.users.length > 0) {
-      const rows = dbData.users.map(u => ({
-        id: u.id,
-        nombre: u.nombre,
-        apellidos: u.apellidos,
-        ci: u.ci,
-        cargo: u.cargo,
-        correo: u.correo,
-        telefono: u.telefono,
-        usuario: u.usuario,
-        contrasena_hash: u.contrasenaHash,
-        rol: u.rol,
-        estado: u.estado,
-        especialidades: u.especialidades || [],
-        regional_id: u.regionalId || u.regional_id,
-        created_at: u.createdAt,
-        updated_at: u.updatedAt
-      }));
-      const { error } = await supabase.from('users').upsert(rows);
-      if (error) errors.push(`Usuarios: ${error.message}`);
-      else summary.users = rows.length;
+      try {
+        const rows = dbData.users.map(u => ({
+          id: u.id,
+          nombre: u.nombre,
+          apellidos: u.apellidos,
+          ci: u.ci,
+          cargo: u.cargo,
+          correo: u.correo,
+          telefono: u.telefono,
+          usuario: u.usuario,
+          contrasena_hash: u.contrasenaHash,
+          rol: u.rol,
+          estado: u.estado,
+          especialidades: u.especialidades || [],
+          regional_id: u.regionalId && validRegionalIds.has(u.regionalId) ? u.regionalId : null,
+          created_at: u.createdAt,
+          updated_at: u.updatedAt
+        }));
+        const { error } = await client.from('users').upsert(rows);
+        if (error) errors.push(`Usuarios: ${error.message}`);
+        else summary.users = rows.length;
+      } catch (err: any) {
+        errors.push(`Usuarios: Error de conexión (${err.message})`);
+      }
     }
 
     // 4. Cadenas
     if (dbData.cadenas && dbData.cadenas.length > 0) {
-      const rows = dbData.cadenas.map(c => ({
-        codigo_unico: c.codigoUnico,
-        nro_cadena: c.nroCadena,
-        rup: c.rup,
-        unidad: c.unidad,
-        regional_id: c.regionalId,
-        caso: c.caso,
-        fiscalia: c.fiscalia,
-        fiscal: c.fiscal,
-        investigador: c.investigador,
-        fecha: c.fecha,
-        hora: c.hora,
-        lugar: c.lugar,
-        estado_actual: c.estadoActual,
-        especialidades_requeridas: c.especialidadesRequeridas || [],
-        created_at: c.createdAt,
-        updated_at: c.updatedAt
-      }));
-      const { error } = await supabase.from('cadenas').upsert(rows);
-      if (error) errors.push(`Cadenas: ${error.message}`);
-      else summary.cadenas = rows.length;
+      try {
+        const rows = dbData.cadenas.map(c => ({
+          codigo_unico: c.codigoUnico,
+          nro_cadena: c.nroCadena,
+          rup: c.rup,
+          unidad: c.unidad,
+          regional_id: c.regionalId && validRegionalIds.has(c.regionalId) ? c.regionalId : null,
+          caso: c.caso,
+          fiscalia: c.fiscalia,
+          fiscal: c.fiscal,
+          investigador: c.investigador,
+          fecha: c.fecha,
+          hora: c.hora,
+          lugar: c.lugar,
+          estado_actual: c.estadoActual,
+          especialidades_requeridas: c.especialidadesRequeridas || [],
+          created_at: c.createdAt,
+          updated_at: c.updatedAt
+        }));
+        const { error } = await client.from('cadenas').upsert(rows);
+        if (error) errors.push(`Cadenas: ${error.message}`);
+        else summary.cadenas = rows.length;
+      } catch (err: any) {
+        errors.push(`Cadenas: Error de conexión (${err.message})`);
+      }
     }
 
     // 5. Evidencias
     if (dbData.evidencias && dbData.evidencias.length > 0) {
-      const rows = dbData.evidencias.map(ev => ({
-        id: ev.id,
-        cadena_codigo: ev.cadenaCodigo,
-        codigo: ev.codigo,
-        tipo: ev.tipo,
-        descripcion: ev.descripcion,
-        cantidad: ev.cantidad,
-        embalaje: ev.embalaje,
-        estado: ev.estado,
-        observaciones: ev.observaciones,
-        created_at: ev.createdAt,
-        updated_at: ev.updatedAt
-      }));
-      const { error } = await supabase.from('evidencias').upsert(rows);
-      if (error) errors.push(`Evidencias: ${error.message}`);
-      else summary.evidencias = rows.length;
+      try {
+        const rows = dbData.evidencias
+          .filter(ev => validCadenaCodigos.has(ev.cadenaCodigo))
+          .map(ev => ({
+            id: ev.id,
+            cadena_codigo: ev.cadenaCodigo,
+            codigo: ev.codigo,
+            tipo: ev.tipo,
+            descripcion: ev.descripcion,
+            cantidad: ev.cantidad,
+            embalaje: ev.embalaje,
+            estado: ev.estado,
+            observaciones: ev.observaciones,
+            created_at: ev.createdAt,
+            updated_at: ev.updatedAt
+          }));
+        if (rows.length > 0) {
+          const { error } = await client.from('evidencias').upsert(rows);
+          if (error) errors.push(`Evidencias: ${error.message}`);
+          else summary.evidencias = rows.length;
+        }
+      } catch (err: any) {
+        errors.push(`Evidencias: Error de conexión (${err.message})`);
+      }
     }
 
     // 6. Peritos Asignados
     if (dbData.peritosAsignados && dbData.peritosAsignados.length > 0) {
-      const rows = dbData.peritosAsignados.map(pa => ({
-        id: pa.id,
-        cadena_codigo: pa.cadenaCodigo,
-        perito_id: pa.peritoId,
-        especialidad_id: pa.especialidadId,
-        fecha_asignacion: pa.fechaAsignacion,
-        asignado_por: pa.asignadoPor,
-        estado_asignacion: pa.estadoAsignacion
-      }));
-      const { error } = await supabase.from('peritos_asignados').upsert(rows);
-      if (error) errors.push(`Peritos Asignados: ${error.message}`);
-      else summary.peritosAsignados = rows.length;
+      try {
+        const rows = dbData.peritosAsignados
+          .filter(pa => validCadenaCodigos.has(pa.cadenaCodigo))
+          .map(pa => ({
+            id: pa.id,
+            cadena_codigo: pa.cadenaCodigo,
+            perito_id: validUserIds.has(pa.peritoId) ? pa.peritoId : null,
+            especialidad_id: validEspecialidadIds.has(pa.especialidadId) ? pa.especialidadId : null,
+            fecha_asignacion: pa.fechaAsignacion,
+            asignado_por: pa.asignadoPor && validUserIds.has(pa.asignadoPor) ? pa.asignadoPor : null,
+            estado_asignacion: pa.estadoAsignacion
+          }));
+        if (rows.length > 0) {
+          const { error } = await client.from('peritos_asignados').upsert(rows);
+          if (error) errors.push(`Peritos Asignados: ${error.message}`);
+          else summary.peritosAsignados = rows.length;
+        }
+      } catch (err: any) {
+        errors.push(`Peritos Asignados: Error de conexión (${err.message})`);
+      }
     }
 
     // 7. Auditorias
     if (dbData.auditorias && dbData.auditorias.length > 0) {
-      const rows = dbData.auditorias.map(a => ({
-        id: a.id,
-        usuario_id: a.usuarioId,
-        usuario_nombre: a.usuarioNombre,
-        fecha: a.fecha,
-        hora: a.hora,
-        accion: a.accion,
-        ip: a.ip,
-        navegador: a.navegador,
-        created_at: a.createdAt
-      }));
-      const { error } = await supabase.from('auditorias').upsert(rows);
-      if (error) errors.push(`Auditorías: ${error.message}`);
-      else summary.auditorias = rows.length;
+      try {
+        const rows = dbData.auditorias.map(a => ({
+          id: a.id,
+          usuario_id: a.usuarioId && validUserIds.has(a.usuarioId) ? a.usuarioId : null,
+          usuario_nombre: a.usuarioNombre,
+          fecha: a.fecha,
+          hora: a.hora,
+          accion: a.accion,
+          ip: a.ip,
+          navegador: a.navegador,
+          created_at: a.createdAt
+        }));
+        const { error } = await client.from('auditorias').upsert(rows);
+        if (error) errors.push(`Auditorías: ${error.message}`);
+        else summary.auditorias = rows.length;
+      } catch (err: any) {
+        errors.push(`Auditorías: Error de conexión (${err.message})`);
+      }
+    }
+
+    // 8. Documentos (Documentación Oficial y Evidencia Gráfica)
+    if (dbData.documentos && dbData.documentos.length > 0) {
+      try {
+        const rows = dbData.documentos
+          .filter(d => validCadenaCodigos.has(d.cadenaCodigo))
+          .map(d => ({
+            id: d.id,
+            cadena_codigo: d.cadenaCodigo,
+            nombre_archivo: d.nombreArchivo,
+            tipo_archivo: d.tipoArchivo,
+            fecha_carga: d.fechaCarga,
+            cargado_por_id: d.cargadoPorId && validUserIds.has(d.cargadoPorId) ? d.cargadoPorId : null,
+            descripcion: d.descripcion,
+            tamano: d.tamano
+          }));
+        if (rows.length > 0) {
+          const { error } = await client.from('documentos').upsert(rows);
+          if (error) errors.push(`Documentos: ${error.message}`);
+          else summary.documentos = rows.length;
+        }
+      } catch (err: any) {
+        errors.push(`Documentos: Error de conexión (${err.message})`);
+      }
+    }
+
+    // 9. Historiales
+    if (dbData.historiales && dbData.historiales.length > 0) {
+      try {
+        const rows = dbData.historiales
+          .filter(h => validCadenaCodigos.has(h.cadenaCodigo))
+          .map(h => ({
+            id: h.id,
+            cadena_codigo: h.cadenaCodigo,
+            fecha: h.fecha,
+            hora: h.hora,
+            usuario_id: h.usuarioId && validUserIds.has(h.usuarioId) ? h.usuarioId : null,
+            usuario_nombre: h.usuarioNombre,
+            accion: h.accion,
+            observaciones: h.observaciones,
+            created_at: h.createdAt
+          }));
+        if (rows.length > 0) {
+          const { error } = await client.from('historiales').upsert(rows);
+          if (error) errors.push(`Historiales: ${error.message}`);
+          else summary.historiales = rows.length;
+        }
+      } catch (err: any) {
+        errors.push(`Historiales: Error de conexión (${err.message})`);
+      }
+    }
+
+    // 10. Notificaciones
+    if (dbData.notificaciones && dbData.notificaciones.length > 0) {
+      try {
+        const rows = dbData.notificaciones
+          .filter(n => validUserIds.has(n.usuarioId))
+          .map(n => ({
+            id: n.id,
+            usuario_id: n.usuarioId,
+            titulo: n.titulo,
+            mensaje: n.mensaje,
+            fecha: n.fecha,
+            leida: n.leida
+          }));
+        if (rows.length > 0) {
+          const { error } = await client.from('notificaciones').upsert(rows);
+          if (error) errors.push(`Notificaciones: ${error.message}`);
+          else summary.notificaciones = rows.length;
+        }
+      } catch (err: any) {
+        errors.push(`Notificaciones: Error de conexión (${err.message})`);
+      }
     }
 
     return {
@@ -378,7 +537,7 @@ export async function syncLocalDataToSupabase(dbData: DbSchema): Promise<{ succe
     return {
       success: false,
       summary,
-      errors: [err.message]
+      errors: [`Error general de red/fetch al sincronizar con Supabase: ${err.message}`]
     };
   }
 }

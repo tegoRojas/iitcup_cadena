@@ -35,7 +35,7 @@ export default function SupabaseModal({ isOpen, onClose }: SupabaseModalProps) {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'status' | 'sql' | 'sync'>('status');
 
-  const supabaseUrl = 'https://lhbgqiemzwqzvpwcgnkr.supabase.com';
+  const supabaseUrl = 'https://lhbgqiemzwqzvpwcgnkr.supabase.co';
 
   useEffect(() => {
     if (isOpen) {

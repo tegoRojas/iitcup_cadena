@@ -657,7 +657,8 @@ app.post('/api/cadenas/:codigo/documentos', authMiddleware, (req: AuthenticatedR
     tipoArchivo,
     cargadoPorId: user.userId,
     descripcion,
-    tamano: tamano || 102400
+    tamano: tamano || 102400,
+    base64Data
   });
 
   // Create timeline history
