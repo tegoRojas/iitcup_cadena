@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, User, Menu, Wifi, WifiOff, Check, AlertCircle } from 'lucide-react';
+import { Bell, User, Menu, Wifi, WifiOff, Check, AlertCircle, Monitor } from 'lucide-react';
 import { User as UserType, Notificacion } from '../types';
 import { api, isOnline } from '../lib/api';
 
@@ -7,9 +7,10 @@ interface HeaderProps {
   user: UserType;
   setSidebarCollapsed: (col: boolean) => void;
   sidebarCollapsed: boolean;
+  onOpenInstallerModal?: () => void;
 }
 
-export default function Header({ user, setSidebarCollapsed, sidebarCollapsed }: HeaderProps) {
+export default function Header({ user, setSidebarCollapsed, sidebarCollapsed, onOpenInstallerModal }: HeaderProps) {
   const [notifications, setNotifications] = useState<Notificacion[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [online, setOnline] = useState(isOnline());
@@ -76,7 +77,19 @@ export default function Header({ user, setSidebarCollapsed, sidebarCollapsed }: 
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 md:gap-4">
+        {/* Windows Installer Shortcut Button */}
+        {onOpenInstallerModal && (
+          <button
+            onClick={onOpenInstallerModal}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-oro-600/20 text-oro-400 border border-oro-500/30 hover:bg-oro-600/30 transition shadow-sm"
+            title="Crear Acceso Directo en Escritorio de Windows"
+          >
+            <Monitor className="w-3.5 h-3.5 text-oro-400" />
+            <span className="hidden sm:inline">Instalador Windows</span>
+          </button>
+        )}
+
         {/* Connection Badge */}
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${
           online 

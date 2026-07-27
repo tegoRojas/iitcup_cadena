@@ -30,12 +30,14 @@ import UsersView from './components/UsersView';
 import SpecialtiesView from './components/SpecialtiesView';
 import AuditView from './components/AuditView';
 import SupabaseModal from './components/SupabaseModal';
+import WindowsInstallerModal from './components/WindowsInstallerModal';
 
 export default function App() {
   const [token, setToken] = useState<string | null>(getStoredToken());
   const [user, setUser] = useState<User | null>(getStoredUser());
   const [loading, setLoading] = useState(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
+  const [isInstallerModalOpen, setIsInstallerModalOpen] = useState(false);
 
   // Shell Layout State
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -294,6 +296,7 @@ export default function App() {
           setCollapsed={setSidebarCollapsed}
           onLogout={handleLogout}
           onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
+          onOpenInstallerModal={() => setIsInstallerModalOpen(true)}
         />
 
         {/* Main core panel */}
@@ -303,6 +306,7 @@ export default function App() {
             user={user} 
             setSidebarCollapsed={setSidebarCollapsed} 
             sidebarCollapsed={sidebarCollapsed} 
+            onOpenInstallerModal={() => setIsInstallerModalOpen(true)}
           />
 
           {/* Core content scrolling container */}
@@ -316,6 +320,12 @@ export default function App() {
       <SupabaseModal 
         isOpen={isSupabaseModalOpen} 
         onClose={() => setIsSupabaseModalOpen(false)} 
+      />
+
+      {/* Windows Desktop Shortcut Installer Modal */}
+      <WindowsInstallerModal
+        isOpen={isInstallerModalOpen}
+        onClose={() => setIsInstallerModalOpen(false)}
       />
     </div>
   );
