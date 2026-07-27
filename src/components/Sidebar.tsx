@@ -9,7 +9,8 @@ import {
   ChevronRight, 
   Lock,
   LogOut,
-  FolderOpen
+  FolderOpen,
+  Database
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -20,9 +21,10 @@ interface SidebarProps {
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
   onLogout: () => void;
+  onOpenSupabaseModal?: () => void;
 }
 
-export default function Sidebar({ user, activeTab, setActiveTab, collapsed, setCollapsed, onLogout }: SidebarProps) {
+export default function Sidebar({ user, activeTab, setActiveTab, collapsed, setCollapsed, onLogout, onOpenSupabaseModal }: SidebarProps) {
   // Navigation tabs based on User Role
   const menuItems = [
     { id: 'dashboard', label: user.rol === 'SUPERVISOR' ? 'Dashboard Nacional' : 'Dashboard', icon: LayoutDashboard, roles: ['ADMINISTRADOR', 'ENCARGADO', 'PERITO', 'SUPERVISOR'] },
@@ -106,6 +108,18 @@ export default function Sidebar({ user, activeTab, setActiveTab, collapsed, setC
               </button>
             );
           })}
+
+          {/* Supabase Integration Button (for Admin / Supervisor) */}
+          {(user.rol === 'ADMINISTRADOR' || user.rol === 'SUPERVISOR') && onOpenSupabaseModal && (
+            <button
+              onClick={onOpenSupabaseModal}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/60 transition-all mt-2 group shadow-sm"
+              title={collapsed ? 'Base de Datos Supabase' : undefined}
+            >
+              <Database className="w-4 h-4 shrink-0 text-emerald-600 group-hover:scale-110 transition-transform" />
+              {!collapsed && <span className="truncate">Base de Datos Supabase</span>}
+            </button>
+          )}
         </nav>
       </div>
 

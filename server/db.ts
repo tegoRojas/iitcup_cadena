@@ -1476,6 +1476,10 @@ export class Database {
     });
     this.save();
   }
+
+  getAllData(): DbSchema {
+    return this.data;
+  }
 }
 
 export const db = new Database();

@@ -29,11 +29,13 @@ import CadenaDetailView from './components/CadenaDetailView';
 import UsersView from './components/UsersView';
 import SpecialtiesView from './components/SpecialtiesView';
 import AuditView from './components/AuditView';
+import SupabaseModal from './components/SupabaseModal';
 
 export default function App() {
   const [token, setToken] = useState<string | null>(getStoredToken());
   const [user, setUser] = useState<User | null>(getStoredUser());
   const [loading, setLoading] = useState(false);
+  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
   // Shell Layout State
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -291,6 +293,7 @@ export default function App() {
           collapsed={sidebarCollapsed}
           setCollapsed={setSidebarCollapsed}
           onLogout={handleLogout}
+          onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
         />
 
         {/* Main core panel */}
@@ -308,6 +311,12 @@ export default function App() {
           </main>
         </div>
       </div>
+
+      {/* Supabase Database Integration Manager Modal */}
+      <SupabaseModal 
+        isOpen={isSupabaseModalOpen} 
+        onClose={() => setIsSupabaseModalOpen(false)} 
+      />
     </div>
   );
 }

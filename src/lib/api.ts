@@ -371,6 +371,23 @@ export const api = {
 
   async markNotificationsRead(): Promise<any> {
     return apiFetch('/api/notificaciones/leer', { method: 'POST' });
+  },
+
+  // Supabase Integration
+  async getSupabaseStatus(): Promise<{ success: boolean; message: string; details?: any }> {
+    return apiFetch('/api/supabase/status');
+  },
+
+  async getSupabaseSQL(): Promise<string> {
+    const token = getStoredToken();
+    const res = await fetch('/api/supabase/sql', {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+    return res.text();
+  },
+
+  async syncSupabaseData(): Promise<{ success: boolean; summary: any; errors: string[] }> {
+    return apiFetch('/api/supabase/sync', { method: 'POST' });
   }
 };
 

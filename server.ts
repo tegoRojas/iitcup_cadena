@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { db, hashPassword } from './server/db';
+import { testSupabaseConnection, getSupabaseSQLScript, syncLocalDataToSupabase } from './server/supabase';
 import { authMiddleware, signToken, requireRole, AuthenticatedRequest } from './server/auth';
 
 const app = express();
@@ -68,6 +69,26 @@ app.post('/api/auth/login', (req, res) => {
       regionalId: user.regionalId
     }
   });
+});
+
+// -------------------------------------------------------------
+// SUPABASE INTEGRATION ENDPOINTS
+// -------------------------------------------------------------
+app.get('/api/supabase/status', async (req, res) => {
+  const result = await testSupabaseConnection();
+  res.json(result);
+});
+
+app.get('/api/supabase/sql', (req, res) => {
+  const sql = getSupabaseSQLScript();
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.send(sql);
+});
+
+app.post('/api/supabase/sync', authMiddleware, requireRole(['ADMINISTRADOR', 'SUPERVISOR']), async (req, res) => {
+  const data = db.getAllData();
+  const syncResult = await syncLocalDataToSupabase(data);
+  res.json(syncResult);
 });
 
 // GET Regionales
