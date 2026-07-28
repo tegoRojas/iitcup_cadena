@@ -421,30 +421,30 @@ Verificado y Certificado por la Dirección Departamental del IITCUP.
           {/* General Information Panel */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="bg-slate-50 border-b border-slate-100 px-5 py-3.5 flex items-center justify-between">
-              <span className="font-bold text-xs text-slate-800">1. Datos Fiscales y Judiciales</span>
+              <span className="font-bold text-xs text-slate-800">1. Datos Judiciales e Institución Requiriente</span>
               <span className="text-[10px] text-slate-400 font-semibold mono-font">NRO: {cadena.nroCadena}</span>
             </div>
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
               <div className="space-y-3">
                 <div className="flex justify-between border-b border-slate-50 pb-2">
-                  <span className="text-slate-400">RUP:</span>
-                  <span className="text-olivo-800 font-bold">{cadena.rup || 'N/A'}</span>
+                  <span className="text-slate-400">NÚMERO RUP:</span>
+                  <span className="text-olivo-800 font-bold">{cadena.nroRUP || cadena.rup || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-50 pb-2">
+                  <span className="text-slate-400">NÚMERO FUD:</span>
+                  <span className="text-slate-700 font-bold">{cadena.nroFUD || cadena.caso}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-50 pb-2">
+                  <span className="text-slate-400">INSTITUCIÓN REQUIRIENTE:</span>
+                  <span className="text-slate-700 text-right max-w-[200px] truncate" title={cadena.institucionSolicitante || cadena.fiscalia}>{cadena.institucionSolicitante || cadena.fiscalia}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-50 pb-2">
+                  <span className="text-slate-400">AUTORIDAD REQUIRIENTE:</span>
+                  <span className="text-slate-700">{cadena.autoridadSolicitante || cadena.fiscal}</span>
                 </div>
                 <div className="flex justify-between border-b border-slate-50 pb-2">
                   <span className="text-slate-400">Unidad Requeridora:</span>
                   <span className="text-slate-700 font-bold">{cadena.unidad || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-50 pb-2">
-                  <span className="text-slate-400">Número de Caso:</span>
-                  <span className="text-slate-700">{cadena.caso}</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-50 pb-2">
-                  <span className="text-slate-400">Fiscalía Requeridora:</span>
-                  <span className="text-slate-700 text-right max-w-[200px] truncate" title={cadena.fiscalia}>{cadena.fiscalia}</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-50 pb-2">
-                  <span className="text-slate-400">Fiscal de Materia:</span>
-                  <span className="text-slate-700">{cadena.fiscal}</span>
                 </div>
               </div>
 

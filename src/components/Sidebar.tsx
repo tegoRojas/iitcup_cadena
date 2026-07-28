@@ -122,18 +122,6 @@ export default function Sidebar({ user, activeTab, setActiveTab, collapsed, setC
               {!collapsed && <span className="truncate">Base de Datos Supabase</span>}
             </button>
           )}
-
-          {/* Windows Installer Shortcut Button */}
-          {onOpenInstallerModal && (
-            <button
-              onClick={onOpenInstallerModal}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-oro-900 bg-oro-50 hover:bg-oro-100/80 border border-oro-200/70 transition-all mt-1.5 group shadow-sm"
-              title={collapsed ? 'Instalador Escritorio Windows' : undefined}
-            >
-              <Monitor className="w-4 h-4 shrink-0 text-oro-700 group-hover:scale-110 transition-transform" />
-              {!collapsed && <span className="truncate">Instalador Windows (.bat)</span>}
-            </button>
-          )}
         </nav>
       </div>
 

@@ -39,12 +39,12 @@ export interface User {
 export interface CadenaCustodia {
   codigoUnico: string;
   nroCadena: string;
-  rup?: string;
+  nroRUP?: string;
   unidad?: string;
   regionalId?: string;
-  caso: string;
-  fiscalia: string;
-  fiscal: string;
+  nroFUD: string;
+  institucionSolicitante: string;
+  autoridadSolicitante: string;
   investigador: string;
   fecha: string;
   hora: string;
@@ -53,6 +53,11 @@ export interface CadenaCustodia {
   especialidadesRequeridas?: string[]; // array of specialty IDs
   createdAt: string;
   updatedAt: string;
+  // Aliases for compatibility
+  rup?: string;
+  caso?: string;
+  fiscalia?: string;
+  fiscal?: string;
 }
 
 export interface Evidencia {

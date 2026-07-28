@@ -78,18 +78,6 @@ export default function Header({ user, setSidebarCollapsed, sidebarCollapsed, on
 
       {/* Right Controls */}
       <div className="flex items-center gap-3 md:gap-4">
-        {/* Windows Installer Shortcut Button */}
-        {onOpenInstallerModal && (
-          <button
-            onClick={onOpenInstallerModal}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-oro-600/20 text-oro-400 border border-oro-500/30 hover:bg-oro-600/30 transition shadow-sm"
-            title="Crear Acceso Directo en Escritorio de Windows"
-          >
-            <Monitor className="w-3.5 h-3.5 text-oro-400" />
-            <span className="hidden sm:inline">Instalador Windows</span>
-          </button>
-        )}
-
         {/* Connection Badge */}
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${
           online 

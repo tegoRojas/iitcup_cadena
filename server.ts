@@ -393,10 +393,32 @@ app.get('/api/cadenas/:codigo', authMiddleware, (req: AuthenticatedRequest, res)
 });
 
 app.post('/api/cadenas', authMiddleware, requireRole(['ENCARGADO', 'ADMINISTRADOR']), (req: AuthenticatedRequest, res) => {
-  const { caso, fiscalia, fiscal, investigador, fecha, hora, lugar, evidencias, especialidadesRequeridas, unidad, regionalId } = req.body;
+  const { 
+    nroRUP, 
+    nroFUD, 
+    institucionSolicitante, 
+    autoridadSolicitante, 
+    rup,
+    caso, 
+    fiscalia, 
+    fiscal, 
+    investigador, 
+    fecha, 
+    hora, 
+    lugar, 
+    evidencias, 
+    especialidadesRequeridas, 
+    unidad, 
+    regionalId 
+  } = req.body;
 
-  if (!caso || !fiscalia || !fiscal || !investigador || !fecha || !hora || !lugar || !unidad) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios para registrar la cadena (caso, fiscalia, fiscal, investigador, fecha, hora, lugar, unidad).' });
+  const finalNroRUP = nroRUP || rup || '';
+  const finalNroFUD = nroFUD || caso || '';
+  const finalInstitucion = institucionSolicitante || fiscalia || '';
+  const finalAutoridad = autoridadSolicitante || fiscal || '';
+
+  if (!finalNroFUD || !finalInstitucion || !finalAutoridad || !investigador || !fecha || !hora || !lugar || !unidad) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios para registrar la cadena (nroFUD, institucionSolicitante, autoridadSolicitante, investigador, fecha, hora, lugar, unidad).' });
   }
 
   const targetRegionalId = regionalId || req.user!.regionalId || 'reg-sc';
@@ -406,9 +428,10 @@ app.post('/api/cadenas', authMiddleware, requireRole(['ENCARGADO', 'ADMINISTRADO
 
   // Create chain
   const newCadena = db.createCadena({
-    caso,
-    fiscalia,
-    fiscal,
+    nroRUP: finalNroRUP,
+    nroFUD: finalNroFUD,
+    institucionSolicitante: finalInstitucion,
+    autoridadSolicitante: finalAutoridad,
     investigador,
     fecha,
     hora,
@@ -424,7 +447,7 @@ app.post('/api/cadenas', authMiddleware, requireRole(['ENCARGADO', 'ADMINISTRADO
     req.user!.userId,
     req.user!.nombreCompleto,
     'CREACIÓN Y APERTURA DE CADENA',
-    `Se registra la cadena de custodia bajo el nro. de caso ${caso} e investigador ${investigador}.`
+    `Se registra la cadena de custodia bajo el N° FUD: ${finalNroFUD}, N° RUP: ${finalNroRUP || 'N/A'}, Requiriente: ${finalInstitucion} (${finalAutoridad}).`
   );
 
   // Add Evidences if provided (No "peso" field)

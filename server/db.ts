@@ -47,12 +47,12 @@ export interface Especialidad {
 export interface CadenaCustodia {
   codigoUnico: string; // Format: IITCUP-SC-YYYY-XXXXX
   nroCadena: string;   // Format: CC-YYYY-XXXXX
-  rup?: string;
+  nroRUP?: string;     // User introduced varchar(15)
   unidad?: string;
   regionalId?: string;
-  caso: string;        // e.g. FELCC-SC-10293/2026
-  fiscalia: string;    // e.g. Fiscalía Departamental de Santa Cruz
-  fiscal: string;      // e.g. Dr. Roger Mariaca
+  nroFUD: string;      // User introduced varchar(20)
+  institucionSolicitante: string; // varchar(50): MINISTERIO PÚBLICO, ÓRGANO JUDICIAL, FISCALÍA POLICIAL, OTRO
+  autoridadSolicitante: string;   // varchar(100)
   investigador: string; // e.g. Sgto. 1ro. Juan Choque
   fecha: string;       // YYYY-MM-DD
   hora: string;        // HH:MM
@@ -61,6 +61,11 @@ export interface CadenaCustodia {
   especialidadesRequeridas?: string[]; // array of specialty IDs (Many-to-Many bridge)
   createdAt: string;
   updatedAt: string;
+  // Aliases for backwards compatibility
+  rup?: string;
+  caso?: string;
+  fiscalia?: string;
+  fiscal?: string;
 }
 
 export interface Evidencia {
@@ -382,8 +387,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00001',
     nroCadena: 'CC-2026-1029',
-    caso: 'FELCC-SC-10293/2026',
-    fiscalia: 'Fiscalía Departamental - Unidad de Delitos Contra la Vida',
+    nroRUP: '80129384',
+    nroFUD: 'FUD-SC-10293/2026',
+    institucionSolicitante: 'MINISTERIO PÚBLICO',
+    autoridadSolicitante: 'Dr. Roger Mariaca',
+    rup: '80129384',
+    caso: 'FUD-SC-10293/2026',
+    fiscalia: 'MINISTERIO PÚBLICO',
     fiscal: 'Dr. Roger Mariaca',
     investigador: 'Sgto. 1ro. Juan de Dios Choque',
     fecha: '2026-07-10',
@@ -397,8 +407,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00002',
     nroCadena: 'CC-2026-1030',
-    caso: 'FELCN-SC-08472/2026',
-    fiscalia: 'Fiscalía de Sustancias Controladas',
+    nroRUP: '80129385',
+    nroFUD: 'FUD-SC-08472/2026',
+    institucionSolicitante: 'MINISTERIO PÚBLICO',
+    autoridadSolicitante: 'Dra. Janet Salguero',
+    rup: '80129385',
+    caso: 'FUD-SC-08472/2026',
+    fiscalia: 'MINISTERIO PÚBLICO',
     fiscal: 'Dra. Janet Salguero',
     investigador: 'Cbo. Andrés Mamani Soliz',
     fecha: '2026-07-11',
@@ -412,8 +427,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00003',
     nroCadena: 'CC-2026-1031',
-    caso: 'FELCC-SC-03829/2026',
-    fiscalia: 'Fiscalía de Delitos Patrimoniales',
+    nroRUP: '80129386',
+    nroFUD: 'FUD-SC-03829/2026',
+    institucionSolicitante: 'ÓRGANO JUDICIAL',
+    autoridadSolicitante: 'Dr. Daniel Lobos',
+    rup: '80129386',
+    caso: 'FUD-SC-03829/2026',
+    fiscalia: 'ÓRGANO JUDICIAL',
     fiscal: 'Dr. Daniel Lobos',
     investigador: 'Sof. 2do. Marcelo Quispe',
     fecha: '2026-07-12',
@@ -427,8 +447,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00004',
     nroCadena: 'CC-2026-1032',
-    caso: 'FELCC-SC-11400/2026',
-    fiscalia: 'Fiscalía de Corrupción Pública',
+    nroRUP: '80129387',
+    nroFUD: 'FUD-SC-11400/2026',
+    institucionSolicitante: 'MINISTERIO PÚBLICO',
+    autoridadSolicitante: 'Dra. Claudia Justiniano',
+    rup: '80129387',
+    caso: 'FUD-SC-11400/2026',
+    fiscalia: 'MINISTERIO PÚBLICO',
     fiscal: 'Dra. Claudia Justiniano',
     investigador: 'My. Gustavo Arteaga Flores',
     fecha: '2026-07-13',
@@ -442,8 +467,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00005',
     nroCadena: 'CC-2026-1033',
-    caso: 'FELCV-SC-02941/2026',
-    fiscalia: 'Fiscalía de Delitos en Razón de Género',
+    nroRUP: '80129388',
+    nroFUD: 'FUD-SC-02941/2026',
+    institucionSolicitante: 'FISCALÍA POLICIAL',
+    autoridadSolicitante: 'Dr. Álvaro Escalante',
+    rup: '80129388',
+    caso: 'FUD-SC-02941/2026',
+    fiscalia: 'FISCALÍA POLICIAL',
     fiscal: 'Dr. Álvaro Escalante',
     investigador: 'Sgto. 2do. Carmen Rosa Silva',
     fecha: '2026-07-14',
@@ -457,8 +487,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00006',
     nroCadena: 'CC-2026-1034',
-    caso: 'FELCC-SC-12019/2026',
-    fiscalia: 'Fiscalía de Delitos Económicos',
+    nroRUP: '80129389',
+    nroFUD: 'FUD-SC-12019/2026',
+    institucionSolicitante: 'MINISTERIO PÚBLICO',
+    autoridadSolicitante: 'Dr. Roberto Méndez',
+    rup: '80129389',
+    caso: 'FUD-SC-12019/2026',
+    fiscalia: 'MINISTERIO PÚBLICO',
     fiscal: 'Dr. Roberto Méndez',
     investigador: 'Cbo. Jorge Toro',
     fecha: '2026-07-15',
@@ -472,8 +507,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00007',
     nroCadena: 'CC-2026-1035',
-    caso: 'FELCN-SC-08920/2026',
-    fiscalia: 'Fiscalía de Sustancias Controladas',
+    nroRUP: '80129390',
+    nroFUD: 'FUD-SC-08920/2026',
+    institucionSolicitante: 'MINISTERIO PÚBLICO',
+    autoridadSolicitante: 'Dra. Janet Salguero',
+    rup: '80129390',
+    caso: 'FUD-SC-08920/2026',
+    fiscalia: 'MINISTERIO PÚBLICO',
     fiscal: 'Dra. Janet Salguero',
     investigador: 'Sgto. 1ro. Juan de Dios Choque',
     fecha: '2026-07-15',
@@ -487,8 +527,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00008',
     nroCadena: 'CC-2026-1036',
-    caso: 'FELCC-SC-12501/2026',
-    fiscalia: 'Fiscalía Unidad de Homicidios',
+    nroRUP: '80129391',
+    nroFUD: 'FUD-SC-12501/2026',
+    institucionSolicitante: 'MINISTERIO PÚBLICO',
+    autoridadSolicitante: 'Dr. Roger Mariaca',
+    rup: '80129391',
+    caso: 'FUD-SC-12501/2026',
+    fiscalia: 'MINISTERIO PÚBLICO',
     fiscal: 'Dr. Roger Mariaca',
     investigador: 'Sof. 1ro. Alberto Vargas',
     fecha: '2026-07-16',
@@ -502,8 +547,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00009',
     nroCadena: 'CC-2026-1037',
-    caso: 'FELCC-SC-13010/2026',
-    fiscalia: 'Fiscalía de Delitos Patrimoniales',
+    nroRUP: '80129392',
+    nroFUD: 'FUD-SC-13010/2026',
+    institucionSolicitante: 'ÓRGANO JUDICIAL',
+    autoridadSolicitante: 'Dr. Daniel Lobos',
+    rup: '80129392',
+    caso: 'FUD-SC-13010/2026',
+    fiscalia: 'ÓRGANO JUDICIAL',
     fiscal: 'Dr. Daniel Lobos',
     investigador: 'Sgto. 2do. Marcelo Quispe',
     fecha: '2026-07-17',
@@ -517,8 +567,13 @@ const INITIAL_CADENAS: CadenaCustodia[] = [
   {
     codigoUnico: 'IITCUP-SC-2026-00010',
     nroCadena: 'CC-2026-1038',
-    caso: 'FELCC-SC-13115/2026',
-    fiscalia: 'Fiscalía de Corrupción Pública',
+    nroRUP: '80129393',
+    nroFUD: 'FUD-SC-13115/2026',
+    institucionSolicitante: 'MINISTERIO PÚBLICO',
+    autoridadSolicitante: 'Dra. Claudia Justiniano',
+    rup: '80129393',
+    caso: 'FUD-SC-13115/2026',
+    fiscalia: 'MINISTERIO PÚBLICO',
     fiscal: 'Dra. Claudia Justiniano',
     investigador: 'Sof. Mayor Marcos Quispe',
     fecha: '2026-07-18',
@@ -966,11 +1021,8 @@ export class Database {
       }
     }
 
-    // 3. Cadenas de custodia migration (rup, unidad, regionalId)
+    // 3. Cadenas de custodia migration (nroRUP, nroFUD, institucionSolicitante, autoridadSolicitante)
     if (!this.data.cadenas) this.data.cadenas = [];
-    
-    // Maintain a counter per regional to generate unique RUPs
-    const regionalCounters: { [regId: string]: number } = {};
     
     this.data.cadenas.forEach((c) => {
       let chainChanged = false;
@@ -979,16 +1031,24 @@ export class Database {
         chainChanged = true;
       }
       
-      const regId = c.regionalId;
-      if (!regionalCounters[regId]) {
-        regionalCounters[regId] = 0;
+      if (!c.nroRUP) {
+        c.nroRUP = c.rup || '80129384';
+        c.rup = c.nroRUP;
+        chainChanged = true;
       }
-      regionalCounters[regId]++;
-      
-      if (!c.rup) {
-        const regionalObj = this.data.regionales.find(r => r.id === regId);
-        const prefix = regionalObj ? regionalObj.codigo : '1';
-        c.rup = prefix + String(regionalCounters[regId]).padStart(7 - prefix.length, '0');
+      if (!c.nroFUD) {
+        c.nroFUD = c.caso || 'FUD-SC-10293/2026';
+        c.caso = c.nroFUD;
+        chainChanged = true;
+      }
+      if (!c.institucionSolicitante) {
+        c.institucionSolicitante = c.fiscalia || 'MINISTERIO PÚBLICO';
+        c.fiscalia = c.institucionSolicitante;
+        chainChanged = true;
+      }
+      if (!c.autoridadSolicitante) {
+        c.autoridadSolicitante = c.fiscal || 'Dr. Roger Mariaca';
+        c.fiscal = c.autoridadSolicitante;
         chainChanged = true;
       }
       
@@ -1149,7 +1209,7 @@ export class Database {
     return this.data.cadenas.find(c => c.codigoUnico === codigo);
   }
 
-  createCadena(cadena: Omit<CadenaCustodia, 'codigoUnico' | 'createdAt' | 'updatedAt' | 'estadoActual' | 'nroCadena' | 'rup'> & { regionalId: string }): CadenaCustodia {
+  createCadena(cadena: Partial<CadenaCustodia> & { nroFUD: string; institucionSolicitante: string; autoridadSolicitante: string; investigador: string; fecha: string; hora: string; lugar: string; regionalId: string }): CadenaCustodia {
     // Generate consecutive auto IDs
     const currentCount = this.data.cadenas.length + 1;
     const padding = String(currentCount).padStart(5, '0');
@@ -1159,28 +1219,29 @@ export class Database {
     const codigoUnico = `IITCUP-${regCode}-2026-${padding}`;
     const nroCadena = `CC-2026-${1028 + currentCount}`;
 
-    // Generate atomic, independent RUP for this regional
-    const prefix = regional ? regional.codigo : '1';
-    const regionalCadenas = this.data.cadenas.filter(c => c.regionalId === cadena.regionalId);
-    let nextCorrelative = 1;
-    if (regionalCadenas.length > 0) {
-      const RUPPrefixLength = prefix.length;
-      const correlatives = regionalCadenas.map(c => {
-        if (c.rup && c.rup.startsWith(prefix)) {
-          const numPart = parseInt(c.rup.substring(RUPPrefixLength), 10);
-          return isNaN(numPart) ? 0 : numPart;
-        }
-        return 0;
-      });
-      nextCorrelative = Math.max(...correlatives, 0) + 1;
-    }
-    const rup = prefix + String(nextCorrelative).padStart(7 - prefix.length, '0');
+    const nroRUP = (cadena.nroRUP || cadena.rup || '').substring(0, 15);
+    const nroFUD = (cadena.nroFUD || cadena.caso || '').substring(0, 20);
+    const institucionSolicitante = (cadena.institucionSolicitante || cadena.fiscalia || 'MINISTERIO PÚBLICO').substring(0, 50);
+    const autoridadSolicitante = (cadena.autoridadSolicitante || cadena.fiscal || '').substring(0, 100);
 
     const newCadena: CadenaCustodia = {
       ...cadena,
       codigoUnico,
       nroCadena,
-      rup,
+      nroRUP,
+      nroFUD,
+      institucionSolicitante,
+      autoridadSolicitante,
+      rup: nroRUP,
+      caso: nroFUD,
+      fiscalia: institucionSolicitante,
+      fiscal: autoridadSolicitante,
+      unidad: cadena.unidad || 'FELCC',
+      investigador: cadena.investigador || '',
+      fecha: cadena.fecha || new Date().toISOString().split('T')[0],
+      hora: cadena.hora || new Date().toTimeString().split(' ')[0].substring(0, 5),
+      lugar: cadena.lugar || '',
+      regionalId: cadena.regionalId,
       estadoActual: 'RECIBIDA',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

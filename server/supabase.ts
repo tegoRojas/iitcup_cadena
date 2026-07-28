@@ -144,12 +144,12 @@ CREATE TABLE IF NOT EXISTS public.users (
 CREATE TABLE IF NOT EXISTS public.cadenas (
     codigo_unico TEXT PRIMARY KEY,
     nro_cadena TEXT NOT NULL,
-    rup TEXT,
+    nro_rup VARCHAR(15),
     unidad TEXT,
     regional_id TEXT REFERENCES public.regionales(id),
-    caso TEXT NOT NULL,
-    fiscalia TEXT NOT NULL,
-    fiscal TEXT NOT NULL,
+    nro_fud VARCHAR(20) NOT NULL,
+    institucion_solicitante VARCHAR(50) NOT NULL,
+    autoridad_solicitante VARCHAR(100) NOT NULL,
     investigador TEXT NOT NULL,
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
@@ -157,7 +157,11 @@ CREATE TABLE IF NOT EXISTS public.cadenas (
     estado_actual TEXT NOT NULL DEFAULT 'RECIBIDA',
     especialidades_requeridas TEXT[],
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    rup TEXT,
+    caso TEXT,
+    fiscalia TEXT,
+    fiscal TEXT
 );
 
 -- 5. Tabla de Evidencias Físicas
@@ -357,12 +361,16 @@ export async function syncLocalDataToSupabase(dbData: DbSchema): Promise<{ succe
         const rows = dbData.cadenas.map(c => ({
           codigo_unico: c.codigoUnico,
           nro_cadena: c.nroCadena,
-          rup: c.rup,
+          nro_rup: c.nroRUP || c.rup,
+          rup: c.nroRUP || c.rup,
           unidad: c.unidad,
           regional_id: c.regionalId && validRegionalIds.has(c.regionalId) ? c.regionalId : null,
-          caso: c.caso,
-          fiscalia: c.fiscalia,
-          fiscal: c.fiscal,
+          nro_fud: c.nroFUD || c.caso,
+          caso: c.nroFUD || c.caso,
+          institucion_solicitante: c.institucionSolicitante || c.fiscalia,
+          fiscalia: c.institucionSolicitante || c.fiscalia,
+          autoridad_solicitante: c.autoridadSolicitante || c.fiscal,
+          fiscal: c.autoridadSolicitante || c.fiscal,
           investigador: c.investigador,
           fecha: c.fecha,
           hora: c.hora,

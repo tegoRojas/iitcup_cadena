@@ -617,12 +617,13 @@ export function generateChainPDF(cadena: any) {
 
       <div class="grid-container">
         <div class="panel">
-          <div class="panel-header">INFORMACIÓN JUDICIAL / FISCAL</div>
+          <div class="panel-header">INFORMACIÓN JUDICIAL / REQUIRIENTE</div>
           <div class="panel-body">
-            <div class="info-row"><div class="info-label">Nro. de Caso:</div><div class="info-val">${cadena.caso}</div></div>
+            <div class="info-row"><div class="info-label">NÚMERO FUD:</div><div class="info-val">${cadena.nroFUD || cadena.caso}</div></div>
+            <div class="info-row"><div class="info-label">NÚMERO RUP:</div><div class="info-val">${cadena.nroRUP || cadena.rup || 'N/A'}</div></div>
             <div class="info-row"><div class="info-label">Nro. de Cadena:</div><div class="info-val">${cadena.nroCadena}</div></div>
-            <div class="info-row"><div class="info-label">Fiscalía:</div><div class="info-val">${cadena.fiscalia}</div></div>
-            <div class="info-row"><div class="info-label">Fiscal Asignado:</div><div class="info-val">${cadena.fiscal}</div></div>
+            <div class="info-row"><div class="info-label">INSTITUCIÓN REQUIRIENTE:</div><div class="info-val">${cadena.institucionSolicitante || cadena.fiscalia}</div></div>
+            <div class="info-row"><div class="info-label">AUTORIDAD REQUIRIENTE:</div><div class="info-val">${cadena.autoridadSolicitante || cadena.fiscal}</div></div>
             <div class="info-row"><div class="info-label">Investigador:</div><div class="info-val">${cadena.investigador}</div></div>
           </div>
         </div>

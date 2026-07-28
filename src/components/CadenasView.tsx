@@ -44,9 +44,10 @@ export default function CadenasView({ userRol, userId, userNombreCompleto, onSel
 
   // Modal creation states
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [caso, setCaso] = useState('');
-  const [fiscalia, setFiscalia] = useState('');
-  const [fiscal, setFiscal] = useState('');
+  const [nroRUP, setNroRUP] = useState('');
+  const [nroFUD, setNroFUD] = useState('');
+  const [institucionSolicitante, setInstitucionSolicitante] = useState('MINISTERIO PÚBLICO');
+  const [autoridadSolicitante, setAutoridadSolicitante] = useState('');
   const [investigador, setInvestigador] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [hora, setHora] = useState(new Date().toTimeString().split(' ')[0].substring(0, 5));
@@ -114,7 +115,7 @@ export default function CadenasView({ userRol, userId, userNombreCompleto, onSel
     e.preventDefault();
     setErrorMsg('');
 
-    if (!caso || !fiscalia || !fiscal || !investigador || !fecha || !hora || !lugar || !unidad) {
+    if (!nroFUD || !institucionSolicitante || !autoridadSolicitante || !investigador || !fecha || !hora || !lugar || !unidad) {
       setErrorMsg('Por favor complete todos los datos generales de la cadena.');
       return;
     }
@@ -133,9 +134,10 @@ export default function CadenasView({ userRol, userId, userNombreCompleto, onSel
 
     try {
       const payload = {
-        caso,
-        fiscalia,
-        fiscal,
+        nroRUP,
+        nroFUD,
+        institucionSolicitante,
+        autoridadSolicitante,
         investigador,
         fecha,
         hora,
@@ -150,9 +152,10 @@ export default function CadenasView({ userRol, userId, userNombreCompleto, onSel
       setShowCreateModal(false);
       
       // Reset
-      setCaso('');
-      setFiscalia('');
-      setFiscal('');
+      setNroRUP('');
+      setNroFUD('');
+      setInstitucionSolicitante('MINISTERIO PÚBLICO');
+      setAutoridadSolicitante('');
       setInvestigador('');
       setLugar('');
       setUnidad('FELCC');
@@ -170,9 +173,10 @@ export default function CadenasView({ userRol, userId, userNombreCompleto, onSel
     const clean = cadenas.map(c => ({
       'Código Único': c.codigoUnico,
       'Nro. de Cadena': c.nroCadena,
-      'Caso Judicial': c.caso,
-      'Fiscalía': c.fiscalia,
-      'Fiscal Asignado': c.fiscal,
+      'NÚMERO RUP': c.nroRUP || c.rup || 'N/A',
+      'NÚMERO FUD': c.nroFUD || c.caso,
+      'INSTITUCIÓN REQUIRIENTE': c.institucionSolicitante || c.fiscalia,
+      'AUTORIDAD REQUIRIENTE': c.autoridadSolicitante || c.fiscal,
       'Investigador Colector': c.investigador,
       'Fecha Ingreso': c.fecha,
       'Hora Ingreso': c.hora,
@@ -184,12 +188,18 @@ export default function CadenasView({ userRol, userId, userNombreCompleto, onSel
 
   // Extensive filters mapping
   const filteredCadenas = cadenas.filter(c => {
+    const query = search.toLowerCase();
     const matchesSearch = 
-      c.codigoUnico.toLowerCase().includes(search.toLowerCase()) ||
-      c.nroCadena.toLowerCase().includes(search.toLowerCase()) ||
-      c.caso.toLowerCase().includes(search.toLowerCase()) ||
-      c.fiscal.toLowerCase().includes(search.toLowerCase()) ||
-      c.investigador.toLowerCase().includes(search.toLowerCase());
+      c.codigoUnico.toLowerCase().includes(query) ||
+      c.nroCadena.toLowerCase().includes(query) ||
+      (c.nroRUP && c.nroRUP.toLowerCase().includes(query)) ||
+      (c.rup && c.rup.toLowerCase().includes(query)) ||
+      (c.nroFUD && c.nroFUD.toLowerCase().includes(query)) ||
+      (c.caso && c.caso.toLowerCase().includes(query)) ||
+      (c.institucionSolicitante && c.institucionSolicitante.toLowerCase().includes(query)) ||
+      (c.autoridadSolicitante && c.autoridadSolicitante.toLowerCase().includes(query)) ||
+      (c.fiscal && c.fiscal.toLowerCase().includes(query)) ||
+      c.investigador.toLowerCase().includes(query);
 
     const matchesStatus = statusFilter === 'ALL' || c.estadoActual === statusFilter;
     const matchesRegional = regionalFilter === 'ALL' || c.regionalId === regionalFilter;
@@ -392,17 +402,17 @@ export default function CadenasView({ userRol, userId, userNombreCompleto, onSel
                 {/* Case & general data */}
                 <div className="space-y-2">
                   <h4 className="font-bold text-slate-800 text-sm group-hover:text-olivo-800 transition truncate">
-                    Caso: {cad.caso}
+                    N° FUD: {cad.nroFUD || cad.caso}
                   </h4>
                   <div className="grid grid-cols-2 gap-y-1.5 text-[11px] text-slate-500">
-                    <div className="font-semibold text-slate-400">Reg. Cadena:</div>
-                    <div className="font-medium text-slate-600 truncate">{cad.nroCadena}</div>
+                    <div className="font-semibold text-slate-400">NÚMERO RUP:</div>
+                    <div className="font-medium text-slate-600 truncate">{cad.nroRUP || cad.rup || 'N/A'}</div>
                     
-                    <div className="font-semibold text-slate-400">Fiscalía:</div>
-                    <div className="font-medium text-slate-600 truncate" title={cad.fiscalia}>{cad.fiscalia.split(' - ')[0]}</div>
+                    <div className="font-semibold text-slate-400">INSTITUCIÓN:</div>
+                    <div className="font-medium text-slate-600 truncate" title={cad.institucionSolicitante || cad.fiscalia}>{cad.institucionSolicitante || cad.fiscalia}</div>
 
-                    <div className="font-semibold text-slate-400">Colector:</div>
-                    <div className="font-medium text-slate-600 truncate" title={cad.investigador}>{cad.investigador}</div>
+                    <div className="font-semibold text-slate-400">AUTORIDAD:</div>
+                    <div className="font-medium text-slate-600 truncate" title={cad.autoridadSolicitante || cad.fiscal}>{cad.autoridadSolicitante || cad.fiscal}</div>
                     
                     <div className="font-semibold text-slate-400">Fecha/Hora:</div>
                     <div className="font-medium text-slate-600">{cad.fecha} • {cad.hora}</div>
@@ -461,41 +471,59 @@ export default function CadenasView({ userRol, userId, userNombreCompleto, onSel
                 <h4 className="text-xs font-bold text-olivo-800 border-b border-slate-100 pb-1 uppercase tracking-wide">
                   1. Información General Judicial
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Numero caso */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* NÚMERO RUP */}
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Número de Caso / Cuaderno *</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">NÚMERO RUP</label>
                     <input 
                       type="text" 
-                      placeholder="Ej. FELCC-SC-10293/2026"
-                      value={caso}
-                      onChange={e => setCaso(e.target.value)}
+                      placeholder="Ej. RUP-2026-1029"
+                      value={nroRUP}
+                      onChange={e => setNroRUP(e.target.value)}
+                      maxLength={15}
+                      className="w-full bg-slate-50 hover:bg-slate-100/50 border border-slate-200 focus:bg-white focus:ring-1 focus:ring-olivo-500 rounded-xl px-4 py-2 text-xs font-semibold focus:outline-none transition"
+                    />
+                  </div>
+
+                  {/* NÚMERO FUD */}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">NÚMERO FUD *</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej. FUD-SC-10293/2026"
+                      value={nroFUD}
+                      onChange={e => setNroFUD(e.target.value)}
+                      maxLength={20}
                       className="w-full bg-slate-50 hover:bg-slate-100/50 border border-slate-200 focus:bg-white focus:ring-1 focus:ring-olivo-500 rounded-xl px-4 py-2 text-xs font-semibold focus:outline-none transition"
                       required
                     />
                   </div>
 
-                  {/* Fiscalia */}
+                  {/* INSTITUCIÓN REQUIRIENTE */}
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Fiscalía Departamental / Asignada *</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ej. Unidad de Delitos Contra la Vida"
-                      value={fiscalia}
-                      onChange={e => setFiscalia(e.target.value)}
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">INSTITUCIÓN REQUIRIENTE *</label>
+                    <select
+                      value={institucionSolicitante}
+                      onChange={e => setInstitucionSolicitante(e.target.value)}
                       className="w-full bg-slate-50 hover:bg-slate-100/50 border border-slate-200 focus:bg-white focus:ring-1 focus:ring-olivo-500 rounded-xl px-4 py-2 text-xs font-semibold focus:outline-none transition"
                       required
-                    />
+                    >
+                      <option value="MINISTERIO PÚBLICO">MINISTERIO PÚBLICO</option>
+                      <option value="ÓRGANO JUDICIAL">ÓRGANO JUDICIAL</option>
+                      <option value="FISCALÍA POLICIAL">FISCALÍA POLICIAL</option>
+                      <option value="OTRO">OTRO</option>
+                    </select>
                   </div>
 
-                  {/* Fiscal */}
+                  {/* AUTORIDAD REQUIRIENTE */}
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Fiscal Requeridor Asignado *</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">AUTORIDAD REQUIRIENTE *</label>
                     <input 
                       type="text" 
                       placeholder="Ej. Dr. Roger Mariaca"
-                      value={fiscal}
-                      onChange={e => setFiscal(e.target.value)}
+                      value={autoridadSolicitante}
+                      onChange={e => setAutoridadSolicitante(e.target.value)}
+                      maxLength={100}
                       className="w-full bg-slate-50 hover:bg-slate-100/50 border border-slate-200 focus:bg-white focus:ring-1 focus:ring-olivo-500 rounded-xl px-4 py-2 text-xs font-semibold focus:outline-none transition"
                       required
                     />

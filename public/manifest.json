@@ -1,7 +1,7 @@
 {
-  "short_name": "IITCUP Custodia",
-  "name": "Sistema de Gestión de Cadena de Custodia IITCUP",
-  "description": "Sistema de gestión y trazabilidad de cadenas de custodia para el Instituto de Investigaciones Técnico Científicas de la Universidad Policial - Santa Cruz",
+  "short_name": "IITCUP SCZ",
+  "name": "Sistema de Seguimiento de Casos",
+  "description": "Sistema de gestión y trazabilidad de casos para el Instituto de Investigaciones Técnico Científicas de la Universidad Policial - Santa Cruz",
   "start_url": "/",
   "background_color": "#0a192f",
   "theme_color": "#1b4332",
